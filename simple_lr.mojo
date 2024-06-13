@@ -4,12 +4,13 @@ struct SimpleLinearRegression:
     var slope: UnsafePointer[Float32]
     var lr: Float32
 
-    fn __init__(inout self):
+    fn __init__(inout self, lr: Float32):
         self.intercept = UnsafePointer[Float32].alloc(1)
+        self.slope = UnsafePointer[Float32].alloc(1) 
+        self.lr = lr
+
         initialize_pointee_copy(self.intercept, 0.0)
-        self.slope = UnsafePointer[Float32].alloc(1)
         initialize_pointee_copy(self.slope, 0.0)
-        self.lr = 0.01
 
     fn _forward(self, x: Float32) -> Float32:
         return self.intercept[] + self.slope[] * x
@@ -44,18 +45,13 @@ struct SimpleLinearRegression:
         for _ in range(epochs):
             self._fit(xs, ys)
         
-        
-
     fn predict(self, x: Float32) -> Float32:
         return self._forward(x)
 
 
 fn main():
-    var slr = SimpleLinearRegression()
+    var slr = SimpleLinearRegression(0.1)
     var xs = List[Float32](0.0, 1.0, 2.0, 3.0, 4.0, 5.0)
     var ys = List[Float32](0.0, 1.0, 2.0, 3.0, 4.0, 5.0)
 
-    slr.train(xs, ys, 100)
-
-
-
+    slr.train(xs, ys, 10)
