@@ -25,7 +25,7 @@ struct SimpleLinearRegression:
         var intercept_grad = -2 * (ys - ys_pred)
 
         self.slope.store(self.slope.load() - (self.lr * (slope_grad.reduce_add[1]() / len(xs))))
-        self.intercept.store(self.intercept[0] - (self.lr * (intercept_grad.reduce_add[1]() / len(xs))))
+        self.intercept.store(self.intercept.load() - (self.lr * (intercept_grad.reduce_add[1]() / len(xs))))
 
         return mse
 
