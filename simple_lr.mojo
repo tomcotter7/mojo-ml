@@ -1,3 +1,5 @@
+
+# can handle multiple pairs of input and output data in one pass
 struct SimpleLinearRegression:
     
     var intercept: DTypePointer[DType.float32]
@@ -31,12 +33,15 @@ struct SimpleLinearRegression:
 
     fn fit(self, xs: SIMD[DType.float32], ys: SIMD[DType.float32], epochs: Int):
         
-        for _ in range(epochs):
-            _ = self._backward(xs, ys)
-            # var mse = self._backward(xs, ys)
-            # print("MSE: ", mse)
-            # print("New slope: ", self.slope.load())
-            # print("New intercept: ", self.intercept.load())
+        for i in range(epochs):
+            var mse = self._backward(xs, ys)
+            if i % 10 == 0:
+                print("-------------------------")
+                print("Epoch: ", i)
+                print("MSE: ", mse)
+                print("New slope: ", self.slope.load())
+                print("New intercept: ", self.intercept.load())
+
 
     fn predict(self, xs: SIMD[DType.float32]) -> SIMD[DType.float32]:
         return self._forward(xs)
