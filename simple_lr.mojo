@@ -32,10 +32,14 @@ struct SimpleLinearRegression:
     fn fit(self, xs: SIMD[DType.float32], ys: SIMD[DType.float32], epochs: Int):
         
         for _ in range(epochs):
-            var mse = self._backward(xs, ys)
-            print("MSE: ", mse)
-            print("New slope: ", self.slope.load())
-            print("New intercept: ", self.intercept.load())
+            _ = self._backward(xs, ys)
+            # var mse = self._backward(xs, ys)
+            # print("MSE: ", mse)
+            # print("New slope: ", self.slope.load())
+            # print("New intercept: ", self.intercept.load())
+
+    fn predict(self, xs: SIMD[DType.float32]) -> SIMD[DType.float32]:
+        return self._forward(xs)
 
 
 fn main():
@@ -43,4 +47,8 @@ fn main():
     var x = SIMD[DType.float32](0.0, 1.0, 2.0, 3.0, 4.0)
     var y = SIMD[DType.float32](0.0, 1.0, 2.0, 3.0, 4.0)
 
-    slr.fit(x, y, 25)
+    slr.fit(x, y, 100)
+
+    var x_test = SIMD[DType.float32](5.0, 6.0, 7.0, 8.0, 9.0)
+    var y_pred = slr.predict(x_test)
+    print("Predictions: ", y_pred[0], y_pred[1], y_pred[2], y_pred[3], y_pred[4])
