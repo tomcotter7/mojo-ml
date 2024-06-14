@@ -1,23 +1,17 @@
-
-# can handle multiple pairs of input and output data in one pass
 struct SimpleLinearRegression:
-    
-    var intercept: DTypePointer[DType.float32]
-    var slope: DTypePointer[DType.float32]
+    var intercept: Float32
+    var slope: Float32
     var lr: Float32
 
     fn __init__(inout self, lr: Float32):
-        self.intercept = DTypePointer[DType.float32].alloc(1)
-        self.slope = DTypePointer[DType.float32].alloc(1) 
+        self.intercept = 0.0
+        self.slope = 0.0
         self.lr = lr
 
-        self.intercept.store(0.0)
-        self.slope.store(0.0)
-
     fn _forward(self, xs: SIMD[DType.float32]) -> SIMD[DType.float32]:
-        return self.intercept.load() + self.slope.load() * xs
+        return self.intercept + self.slope * xs
 
-    fn _backward(self, xs: SIMD[DType.float32], ys: SIMD[DType.float32]) -> Float32:
+    fn _backward(inout self, xs: SIMD[DType.float32], ys: SIMD[DType.float32]) -> Float32:
 
         var ys_pred: SIMD[DType.float32] = self._forward(xs)
         var error: SIMD[DType.float32] = (ys - ys_pred) ** 2
@@ -26,22 +20,15 @@ struct SimpleLinearRegression:
         var slope_grad = (-2 * xs) * (ys - ys_pred)
         var intercept_grad = -2 * (ys - ys_pred)
 
-        self.slope.store(self.slope.load() - (self.lr * (slope_grad.reduce_add[1]() / len(xs))))
-        self.intercept.store(self.intercept.load() - (self.lr * (intercept_grad.reduce_add[1]() / len(xs))))
+        self.slope -= (self.lr * (slope_grad.reduce_add[1]() / len(xs)))
+        self.intercept -= (self.lr * (intercept_grad.reduce_add[1]() / len(xs)))
 
         return mse
 
-    fn fit(self, xs: SIMD[DType.float32], ys: SIMD[DType.float32], epochs: Int):
+    fn fit(inout self, xs: SIMD[DType.float32], ys: SIMD[DType.float32], epochs: Int):
         
-        for i in range(epochs):
-            var mse = self._backward(xs, ys)
-            if i % 10 == 0:
-                print("-------------------------")
-                print("Epoch: ", i)
-                print("MSE: ", mse)
-                print("New slope: ", self.slope.load())
-                print("New intercept: ", self.intercept.load())
-
+        for _ in range(epochs):
+            _ = self._backward(xs, ys)
 
     fn predict(self, xs: SIMD[DType.float32]) -> SIMD[DType.float32]:
         return self._forward(xs)
@@ -52,6 +39,7 @@ fn main():
     var x = SIMD[DType.float32](0.0, 1.0, 2.0, 3.0, 4.0)
     var y = SIMD[DType.float32](0.0, 1.0, 2.0, 3.0, 4.0)
 
+    
     slr.fit(x, y, 100)
 
     var x_test = SIMD[DType.float32](5.0, 6.0, 7.0, 8.0, 9.0)
