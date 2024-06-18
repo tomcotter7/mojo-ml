@@ -1,4 +1,4 @@
-from tensors import Rank1Tensor
+from tensors import Rank1Tensor, RankNTensor
 
 alias type = DType.float64
 
@@ -12,7 +12,9 @@ struct SimpleLR[lr: Scalar[type]]:
         self.slope = 0.0
 
     fn _forward(self, xs: Rank1Tensor[type]) -> Rank1Tensor[xs.dtype, xs.width]:
-        return (xs * self.slope) + self.intercept
+        var ys = (xs * self.slope) + self.intercept
+        return ys
+
 
     fn _backward(
         inout self,
@@ -22,13 +24,13 @@ struct SimpleLR[lr: Scalar[type]]:
 
         var ys_pred = self._forward(xs)
         var error = (ys - ys_pred) ** 2
-        var mse = error.sum() / xs._width
+        var mse = error.sum() / xs.width
         
         var slope_grad = ((-2.0 * xs) * (ys - ys_pred))
-        var sg = slope_grad.sum() / xs._width
+        var sg = slope_grad.sum() / xs.width
 
         var intercept_grad = -2.0 * (ys - ys_pred)
-        var ig = intercept_grad.sum() / xs._width
+        var ig = intercept_grad.sum() / xs.width
 
         self.slope -= (lr * sg)
         self.intercept -= (lr * ig)
@@ -60,6 +62,7 @@ fn main():
     xs[3] = 3.0
     xs[4] = 4.0
 
+
     ys[0] = 1.0
     ys[1] = 3.0
     ys[2] = 7.0
@@ -68,6 +71,6 @@ fn main():
 
     var slr = SimpleLR[lr=0.01]()
 
-    slr.fit(xs, ys, 1000)
+    slr.fit(xs, ys, 10000)
 
     print(slr.slope, slr.intercept)
