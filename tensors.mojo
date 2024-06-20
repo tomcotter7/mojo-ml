@@ -167,24 +167,32 @@ struct RankNTensor[dtype: DType, rank: Int, width: Int]:
 
         return result
 
-    fn matmul[n: Int, p: Int](
+    fn matmul[p: Int](
         self,
-        other: RankNTensor[dtype, n, p]
+        other: RankNTensor[dtype, width, p]
     ) -> RankNTensor[dtype, rank, p]:
         
-        print(self.rank, p)
-
         var result = RankNTensor[dtype, rank, p]()
 
         for i in range(result.rank):
             for j in range(result.width):
-                for k in range(self.width):
+                for k in range(width):
                     result[i, j] += self[i, k] * other[k, j]
                 
         return result
 
+    fn dot(
+        self,
+        other: RankNTensor[dtype, rank, width]
+    ) -> Scalar[dtype]:
 
-    
+        var result: Scalar[dtype] = 0.0
+
+        for i in range(rank):
+            for j in range(width):
+                result += self[i, j] * other[i, j]
+
+        return result
 
 struct Rank1Tensor[dtype: DType, width: Int]:
     
