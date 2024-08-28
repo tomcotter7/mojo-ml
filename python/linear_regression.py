@@ -7,7 +7,7 @@ m = np.zeros(X.shape[1])
 b = 0
 
 learning_rate = 0.01
-num_iterations = 10000
+num_iterations = 1000
 
 for i in range(num_iterations):
     y_pred = np.dot(X, m) + b
@@ -15,6 +15,9 @@ for i in range(num_iterations):
     grad_b = -2 * np.sum(Y - y_pred) / len(X)
     m = m - learning_rate * grad_m
     b = b - learning_rate * grad_b
+    loss = ((Y - y_pred) ** 2).sum() / len(X)
+    if i % 100 == 0:
+        print(f"Epoch: {i}, Loss: {loss}")
 
 
 print(f"Slope (m): {m}")
