@@ -5,7 +5,7 @@ All algorithms to be written either in Pytorch, Numpy or Pure Mojo.
 ## Python
 
 - [X] Linear Regression
-- [ ] Logistic Regression
+- [X] Logistic Regression
 - [ ] Random Forest
 - [ ] Naive Bayes
 - [X] MLP
