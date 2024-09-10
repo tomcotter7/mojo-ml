@@ -42,12 +42,29 @@ struct Matrix[dtype: DType = DType.float64](Stringable, CollectionElement, Sized
         
         self._matPtr[row * self._cols + col] = value
 
+    fn __setitem__(inout self, row: Int, values: List[Scalar[dtype]]) raises:
+        
+        if row < 0 or row >= self._rows:
+            raise "Index out of bounds"
+
+        for col in range(self._cols):
+            self[row, col] = values[col]
+
     fn __getitem__(self, row: Int, col: Int) raises -> Scalar[dtype]:
 
         if row < 0 or row >= self._rows or col < 0 or col >= self._cols:
             raise "Index out of bounds"
 
         return self._matPtr[row * self._cols + col]
+
+    fn __getitem__(self, row: Int) raises -> List[Scalar[dtype]]:
+        
+        var values = List[Scalar[dtype]]()
+
+        for col in range(self._cols):
+            values.append(self[row, col])
+
+        return values
 
     fn __add__(self, other: Scalar[dtype]) -> Self:
 
@@ -125,6 +142,11 @@ struct Matrix[dtype: DType = DType.float64](Stringable, CollectionElement, Sized
         vectorize[mul_matrix, self.simd_width](len(newMat))
         return newMat^
 
+    fn __neg__(self) raises -> Self:
+        return self * -1.0
+
+    fn __rsub__(self, other: Scalar[dtype]) raises -> Self:
+        return -self + other
 
     fn __matmul__(self, other: Self) raises -> Self:
 
@@ -164,6 +186,17 @@ struct Matrix[dtype: DType = DType.float64](Stringable, CollectionElement, Sized
             newMat._matPtr[idx] = self._matPtr[idx] / other
 
         vectorize[div_scalar, self.simd_width](len(newMat))
+        return newMat^
+
+    fn __rtruediv__(self, other: Scalar[dtype]) -> Self:
+        
+        var newMat = Matrix[dtype](self._rows, self._cols)
+
+        @parameter
+        fn rdiv_scalar[simd_width: Int](idx: Int) -> None:
+            newMat._matPtr[idx] = other / self._matPtr[idx]
+
+        vectorize[rdiv_scalar, self.simd_width](len(newMat))
         return newMat^
         
     fn __len__(self) -> Int:
@@ -214,4 +247,44 @@ struct Matrix[dtype: DType = DType.float64](Stringable, CollectionElement, Sized
 
         return sum
 
+    fn exp(self) -> Self:
+        
+        var newMat = Matrix[dtype](self._rows, self._cols)
 
+        @parameter
+        fn exp_mat[simd_width: Int](idx: Int) -> None:
+            newMat._matPtr[idx] = math.exp(self._matPtr[idx])
+
+        vectorize[exp_mat, self.simd_width](len(newMat))
+
+        return newMat^
+
+    fn log(self) -> Self:
+
+        var newMat = Matrix[dtype](self._rows, self._cols)
+
+        @parameter
+        fn log_mat[simd_width: Int](idx: Int) -> None:
+            newMat._matPtr[idx] = math.log(self._matPtr[idx])
+
+        vectorize[log_mat, self.simd_width](len(newMat))
+
+        return newMat^
+
+    fn hstack(self, pos: Int, val: Int) raises -> Self:
+
+        var newMat = Matrix[dtype](self._rows, self._cols + 1)
+
+        for i in range(self._rows):
+            for j in range(self._cols):
+                if j < pos:
+                    newMat[i, j] = self[i, j]
+                elif j == pos:
+                    newMat[i, j] = val
+                else:
+                    newMat[i, j] = self[i, j - 1]
+        
+        return newMat^
+
+
+        return newMat
